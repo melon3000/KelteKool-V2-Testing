@@ -1,12 +1,23 @@
-﻿@model KeelteKoolV2.Models.LanguageCourses.LanguageCourseViewModel
+﻿@model KeelteKoolV2.Models.LanguageCourses.LanguageCourseCreateUpdateViewModel
 
 @* separate update create *@
+@if (Model.Id.HasValue)
+{
+    <h1>Muuda kursust</h1>
+}
+else 
+{
+    <h1>Loo uus kursus</h1>
+}
 
 <div>
     <form method="post" enctype="multipart/form-data">
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
         <input asp-for="Id" type="hidden"/>
+        <input asp-for="CreatedAt" type="hidden"/>
+        <input asp-for="ModifiedAt" type="hidden"/>
+        <input asp-for="ModifiedBy" type="hidden"/>
 
         <div class="form-group">
             <label asp-for="Nimetus" class="control-label"></label>
@@ -32,9 +43,16 @@
             <span asp-validation-for="Kirjeldus" class="text-danger"></span>
         </div>
 
-        @* create only, later add update, checkforid *@
+        @if (Model.Id.HasValue)
+        {
+            <input asp-action="update" asp-controller="LanguageCourses" type="submit" value="Muuda" class="btn btn-success" />
 
-        <input asp-action="create" asp-controller="LanguageCourses" type="submit" value="Loo Keelekursus" class="btn btn-success"/>
-
+        }
+        else
+        {
+            <input asp-action="create" asp-controller="LanguageCourses" type="submit" value="Okeiks" class="btn btn-success" />
+        }
+        <a asp-action="Index" asp-controller="LanguageCourses" class="btn btn-secondary">Tagasi</a>
+        
     </form>
 </div>

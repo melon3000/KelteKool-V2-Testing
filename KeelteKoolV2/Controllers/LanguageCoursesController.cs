@@ -100,7 +100,9 @@ namespace KeelteKoolV2.Controllers
             vm.Keel = languageCourse.Keel;
             vm.Tase = languageCourse.Tase;
 
-            return View(vm);
+            ViewData["ViewType"] = "details";
+
+            return View("DetailsDelete", vm);
         }
         [HttpGet]
         public async Task<IActionResult> Update(Guid id)
@@ -147,6 +149,30 @@ namespace KeelteKoolV2.Controllers
                 return RedirectToAction(nameof(Index));
             }
             return RedirectToAction(nameof(Update), new { id = resultId });
+        }
+        [HttpGet]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            if (id == Guid.Empty)
+            {
+                return NotFound();
+            }
+            var languageCourse = await _languageCoursesServices.DetailsAsync(id);
+            if (languageCourse == null)
+            {
+                return NotFound();
+            }
+            var vm = new LanguageCourseViewModel()
+            { };
+            vm.Id = languageCourse.Id;
+            vm.Kirjeldus = languageCourse.Kirjeldus;
+            vm.Nimetus = languageCourse.Nimetus;
+            vm.Keel = languageCourse.Keel;
+            vm.Tase = languageCourse.Tase;
+
+            ViewData["ViewType"] = "delete";
+
+            return View("DetailsDelete", vm);
         }
     }
 }

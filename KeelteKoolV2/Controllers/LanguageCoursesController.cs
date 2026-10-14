@@ -43,7 +43,7 @@ namespace KeelteKoolV2.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         //[Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create(LanguageCourseCreateUpdateViewModel vm) 
+        public async Task<IActionResult> Create(LanguageCourseCreateUpdateViewModel vm)
         {
             //kontrollime et vm ei oleks null
             if (vm == null)
@@ -57,7 +57,7 @@ namespace KeelteKoolV2.Controllers
             }
             //teeme uue DTO-objekti
             //asetame dtosse vmi andmed
-            var dto = new LanguageCourseDTO() 
+            var dto = new LanguageCourseDTO()
             {
                 Id = vm.Id,
                 Nimetus = vm.Nimetus,
@@ -83,7 +83,7 @@ namespace KeelteKoolV2.Controllers
         [HttpGet]
         public async Task<IActionResult> Details(Guid id)
         {
-            if (id == Guid.Empty) 
+            if (id == Guid.Empty)
             {
                 return NotFound();
             }

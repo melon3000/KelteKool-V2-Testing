@@ -3,5 +3,6 @@
   <Project Path="../KeelteKoolV2.Core/KeelteKoolV2.Core.csproj" />
   <Project Path="../KeelteKoolV2.Data/KeelteKoolV2.Data.csproj" />
   <Project Path="../KeelteKoolV2.xUnitTesting/KeelteKoolV2.xUnitTesting.csproj" Id="a0d54aa4-c177-4449-8d9e-0a0b8b668389" />
+  <Project Path="../KelteKoolV2.SeleniumTesting/KelteKoolV2.SeleniumTesting.csproj" Id="49f33428-18de-4282-ac17-f8d11441091a" />
   <Project Path="KeelteKoolV2.csproj" />
 </Solution>

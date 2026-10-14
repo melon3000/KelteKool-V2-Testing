@@ -1,189 +1,217 @@
-﻿using KeelteKoolV2.Core.Domain;
+﻿﻿using KeelteKoolV2.Core.Domain;
 using KeelteKoolV2.Core.DTO;
 using KeelteKoolV2.Core.ServiceInterface;
 using KeelteKoolV2.Data;
 using KeelteKoolV2.Models.LanguageCourses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OpenQA.Selenium;
+using Xunit;
 
-namespace KeelteKoolV2.Controllers
+namespace KeelteKoolV2.SeleniumTesting
 {
-    public class LanguageCoursesController : Controller
+    public class LanguageCourseFrontendTests
     {
-        private readonly KeelteKoolV2Context _context;
-        private readonly ILanguageCoursesServices _languageCoursesServices;
+        [Fact]
+        public void Should_NavigateToIndex_AddLanguageCourseWithCorrectData_ReturnToIndex()
+        {
+            /* Ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
 
-        public LanguageCoursesController(KeelteKoolV2Context context, ILanguageCoursesServices languageCoursesServices)
-        {
-            _context = context;
-            _languageCoursesServices = languageCoursesServices;
+            /* tegevus */
+            IWebElement indexCreateButton = driver.FindElement(By.Id("IndexCreateNewLanguageCourse_BTN"));
+            indexCreateButton.Click(); //click on create button
+
+            DataEntry_LanguageCourse(driver); //enter data in view
+
+            IWebElement CreateCreateButton = driver.FindElement(By.Id("CU_Create_BTN"));
+            CreateCreateButton.Click(); //click create button in create view
+
+            /* kontroll */
+
+            //kogume andmed
+            string LanguageCourseNameData = driver.FindElement(By.Id("IndexTableCourseNimetus")).Text;
+            string LanguageCourseKeelData = driver.FindElement(By.Id("IndexTableCourseKeel")).Text;
+            //sulgeme akna
+            Thread.Sleep(500);
+            driver.Quit();
+            //assertime
+            Assert.Equal("Automaattestimise kursus", LanguageCourseNameData);
+            Assert.Equal("C# + Selenium & xUnit", LanguageCourseKeelData);
+            Assert.True(("Automaattestimise kursus" == LanguageCourseNameData) && ("C# + Selenium & xUnit" == LanguageCourseKeelData));
         }
-        public IActionResult Index()
+        // siia vaja details (READ) test
+        [Fact]
+        public void Should_NavigateToDetailsOfALanguageCourse_WithPreviouslyCorrectData()
         {
-            ////gets everything
-            //var result = _context.LanguageCourses.ToList();
-            // get only some, with limited info
-            var result = _context.LanguageCourses
-                .Select(x => new LanguageCourseViewModel
+            /* ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+            var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            bool isObjectFound = false;
+
+            /* tegevus */
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableCourseNimetus")).Text;
+                var keelElement = row.FindElement(By.Id("IndexTableCourseKeel")).Text;
+                if ((nameElement == "Automaattestimise kursus") && (keelElement == "C# + Selenium & xUnit"))
                 {
-                    Id = x.Id,
-                    Nimetus = x.Nimetus,
-                    Keel = x.Keel,
-                }).Take(20).OrderBy(x => x.Keel);
-            return View(result);
+                    isObjectFound = true;
+                    var clickAction = row
+                        .FindElement(By.Id("IndexTableCourseActions"))
+                        .FindElement(By.Id("IndexTableCourseDetails_BTN"));
+                    clickAction.Click();
+                    break;
+                }
+            }
+            Thread.Sleep(1000);
+            //find data
+            string details_id = driver.FindElement(By.Id("DD_LanguageCourseGuid")).Text;
+            string details_name = driver.FindElement(By.Id("DD_LanguageCourseNimetus")).Text;
+            string details_keel = driver.FindElement(By.Id("DD_LanguageCourseKeel")).Text;
+            string details_kirjeldus = driver.FindElement(By.Id("DD_LanguageCourseKirjeldus")).Text;
+            string details_tase = driver.FindElement(By.Id("DD_LanguageCourseTase")).Text;
+            IWebElement goBack = driver.FindElement(By.Id("DetailsBack_BTN"));
+            goBack.Click();
+            Thread.Sleep(1000);
+            driver.Quit();
 
+            /* Kontroll */
+            Assert.True(isObjectFound);
+            Assert.NotEmpty(details_id);
+            Assert.NotEmpty(details_name);
+            Assert.NotEmpty(details_keel);
+            Assert.NotEmpty(details_kirjeldus);
+            Assert.NotEmpty(details_tase);
+            Assert.Equal("Automaattestimise kursus", details_name);
+            Assert.Equal("C# + Selenium & xUnit", details_keel);
+        }
+        //vaja teha uuenduse test (UPDATE)
+        [Fact]
+        public void Should_UpdateDetailsOfLanguageCourse_WithNewData()
+        {
+            /* Ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+            var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            bool isObjectFound = false;
+
+            /* tegevus */
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableCourseNimetus")).Text;
+                var keelElement = row.FindElement(By.Id("IndexTableCourseKeel")).Text;
+                if ((nameElement == "Automaattestimise kursus") && (keelElement == "C# + Selenium & xUnit"))
+                {
+                    isObjectFound = true;
+                    var clickAction = row
+                        .FindElement(By.Id("IndexTableCourseActions"))
+                        .FindElement(By.Id("IndexTableCourseUpdate_BTN"));
+                    clickAction.Click();
+                    break;
+                }
+            }
+            Thread.Sleep(500);
+            DataClear_CreateUpdate(driver);
+            DataEntry_LanguageCourse(driver, true);
+            IWebElement updateclick = driver.FindElement(By.Id("CU_Update_BTN"));
+            updateclick.Click();
+            IWebElement goBack = driver.FindElement(By.Id("CU_Cancel_BTN"));
+            goBack.Click();
+
+            /* kontrolle */
+            //otsi objekt üles:
+            tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            isObjectFound = false;
+            Thread.Sleep(1000);
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableCourseNimetus")).Text;
+                var keelElement = row.FindElement(By.Id("IndexTableCourseKeel")).Text;
+                if ((nameElement == "Manuaaltestimise kursus") && (keelElement == "Mantis, Excel"))
+                {
+                    isObjectFound = true;
+                    var clickAction = row
+                        .FindElement(By.Id("IndexTableCourseActions"))
+                        .FindElement(By.Id("IndexTableCourseDetails_BTN"));
+                    clickAction.Click();
+                    break;
+                }
+            }
+            //find data
+            string details_id = driver.FindElement(By.Id("DD_LanguageCourseGuid")).Text;
+            string details_name = driver.FindElement(By.Id("DD_LanguageCourseNimetus")).Text;
+            string details_keel = driver.FindElement(By.Id("DD_LanguageCourseKeel")).Text;
+            string details_kirjeldus = driver.FindElement(By.Id("DD_LanguageCourseKirjeldus")).Text;
+            string details_tase = driver.FindElement(By.Id("DD_LanguageCourseTase")).Text;
+            Thread.Sleep(1000);
+            driver.Quit();
+
+            Assert.True(isObjectFound);
+            Assert.NotNull(details_id);
+            Assert.NotEmpty(details_id);
+            Assert.NotEqual("Automaattestimise kursus", details_name);
+            Assert.NotEqual("C# + Selenium & xUnit", details_keel);
+            Assert.NotEqual("3", details_kirjeldus);
+            Assert.NotEqual("Kursusel õpime mis on automaattestimine, kuidas erineb manuaaltestimisest ning kuidas kirjutada " +
+                    "backendi ja frontendi automaatteste.", details_tase);
         }
 
-        [HttpGet]
-        public IActionResult Create()
+        private void DataClear_CreateUpdate(IWebDriver driver)
         {
-            LanguageCourseCreateUpdateViewModel vm = new();
-            return View("CreateUpdate", vm);
+            IWebElement createEntryNimetus = driver.FindElement(By.Id("CU_LanguageCourse_Nimetus"));
+            createEntryNimetus.Clear();
+            IWebElement createEntryKeel = driver.FindElement(By.Id("CU_LanguageCourse_Keel"));
+            createEntryKeel.Clear();
+            IWebElement createEntryTase = driver.FindElement(By.Id("CU_LanguageCourse_Tase"));
+            createEntryTase.Clear();
+            IWebElement createEntryKirjeldus = driver.FindElement(By.Id("CU_LanguageCourse_Kirjeldus"));
+            createEntryKirjeldus.Clear();
         }
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        //[Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create(LanguageCourseCreateUpdateViewModel vm)
+
+
+        // Delete
+        private static void DataEntry_LanguageCourse(IWebDriver driver, bool isOneOrTwo = false)
         {
-            //kontrollime et vm ei oleks null
-            if (vm == null)
+            if (!isOneOrTwo)
             {
-                return RedirectToAction("Error", "Home");
-            }
-            //kontrollime et vmi modelstate on õige
-            if (!ModelState.IsValid)
-            {
-                return RedirectToAction("Error", "Home");
-            }
-            //teeme uue DTO-objekti
-            //asetame dtosse vmi andmed
-            var dto = new LanguageCourseDTO()
-            {
-                Id = vm.Id,
-                Nimetus = vm.Nimetus,
-                Keel = vm.Keel,
-                Tase = vm.Tase,
-                Kirjeldus = vm.Kirjeldus
-            };
-            //teostatakse päring teenusele
-            var result = await _languageCoursesServices.Create(dto);
-            //teenus peab objekti tagastama
-            //kontrollime kas tagastatud objekt on null
-            if (result == null)
-            {
-                //  kui on, suuname vealehele
-                return RedirectToAction("Error", "Home");
+                IWebElement createEntryNimetus = driver.FindElement(By.Id("CU_LanguageCourse_Nimetus"));
+                createEntryNimetus.SendKeys("Automaattestimise kursus");
+                IWebElement createEntryKeel = driver.FindElement(By.Id("CU_LanguageCourse_Keel"));
+                createEntryKeel.SendKeys("C# + Selenium & xUnit");
+                IWebElement createEntryTase = driver.FindElement(By.Id("CU_LanguageCourse_Tase"));
+                createEntryTase.SendKeys("3");
+                IWebElement createEntryKirjeldus = driver.FindElement(By.Id("CU_LanguageCourse_Kirjeldus"));
+                createEntryKirjeldus.SendKeys("Kursusel õpime mis on automaattestimine, kuidas erineb manuaaltestimisest ning kuidas kirjutada " +
+                    "backendi ja frontendi automaatteste.");
             }
             else
             {
-                //  kui ei, suuname tagasi indeksisse
-                return RedirectToAction(nameof(Index));
+                IWebElement createEntryNimetus = driver.FindElement(By.Id("CU_LanguageCourse_Nimetus"));
+                createEntryNimetus.SendKeys("Manuaaltestimise kursus");
+                IWebElement createEntryKeel = driver.FindElement(By.Id("CU_LanguageCourse_Keel"));
+                createEntryKeel.SendKeys("Mantis, Excel");
+                IWebElement createEntryTase = driver.FindElement(By.Id("CU_LanguageCourse_Tase"));
+                createEntryTase.SendKeys("4");
+                IWebElement createEntryKirjeldus = driver.FindElement(By.Id("CU_LanguageCourse_Kirjeldus"));
+                createEntryKirjeldus.SendKeys("Kursusel õpime mis on manuaaltestimine, kuidas erineb automaattestimisest ning " +
+                    "mis dokumentatsioon manuaaltestimise juures tähtis on ning kuidas neid kirjutada.");
             }
         }
-        [HttpGet]
-        public async Task<IActionResult> Details(Guid id)
-        {
-            if (id == Guid.Empty)
-            {
-                return NotFound();
-            }
-            var languageCourse = await _languageCoursesServices.DetailsAsync(id);
-            if (languageCourse == null)
-            {
-                return NotFound();
-            }
-            var vm = new LanguageCourseViewModel()
-            { };
-            vm.Id = languageCourse.Id;
-            vm.Kirjeldus = languageCourse.Kirjeldus;
-            vm.Nimetus = languageCourse.Nimetus;
-            vm.Keel = languageCourse.Keel;
-            vm.Tase = languageCourse.Tase;
 
-            ViewData["ViewType"] = "details";
-
-            return View("DetailsDelete", vm);
-        }
-        [HttpGet]
-        public async Task<IActionResult> Update(Guid id)
+        private static IWebDriver TestSetup_NavigateToIndex()
         {
-            if (id == Guid.Empty)
-            { return NotFound(); }
-            var courseToUpdate = await _languageCoursesServices.DetailsAsync(id);
-            if (courseToUpdate == null)
-            {
-                return NotFound();
-            }
-            var vm = new LanguageCourseCreateUpdateViewModel()
-            { };
-            vm.Id = courseToUpdate.Id;
-            vm.Kirjeldus = courseToUpdate.Kirjeldus;
-            vm.Nimetus = courseToUpdate.Nimetus;
-            vm.Keel = courseToUpdate.Keel;
-            vm.Tase = courseToUpdate.Tase;
-            vm.CreatedAt = courseToUpdate.CreatedAt;
-            vm.ModifiedAt = courseToUpdate.ModifiedAt;
-            return View("CreateUpdate", vm);
-        }
-        [HttpPost]
-        public async Task<IActionResult> Update(LanguageCourseCreateUpdateViewModel vm)
-        {
-            if (!ModelState.IsValid)
-            {
-                return View("CreateUpdate", vm);
-            }
-            var dto = new LanguageCourseDTO()
-            {
-                Id = vm.Id,
-                Keel = vm.Keel,
-                Kirjeldus = vm.Kirjeldus,
-                Nimetus = vm.Nimetus,
-                Tase = vm.Tase,
-                CreatedAt = vm.CreatedAt,
-                ModifiedAt = vm.ModifiedAt
-            };
-            var result = await _languageCoursesServices.Update(dto);
-            var resultId = result.Id;
-            if (result == null)
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            return RedirectToAction(nameof(Update), new { id = resultId });
-        }
-        [HttpGet]
-        public async Task<IActionResult> Delete(Guid? id)
-        {
-            if (id == Guid.Empty)
-            {
-                return NotFound();
-            }
-            var languageCourse = await _languageCoursesServices.DetailsAsync((Guid)id);
-            if (languageCourse == null)
-            {
-                return NotFound();
-            }
-            var vm = new LanguageCourseViewModel()
-            { };
-            vm.Id = languageCourse.Id;
-            vm.Kirjeldus = languageCourse.Kirjeldus;
-            vm.Nimetus = languageCourse.Nimetus;
-            vm.Keel = languageCourse.Keel;
-            vm.Tase = languageCourse.Tase;
-
-            ViewData["ViewType"] = "delete";
-
-            return View("DetailsDelete", vm);
-        }
-        [HttpPost]
-        [ActionName("DeleteConfirmed")]
-        public async Task<IActionResult> Delete(Guid id)
-        {
-            var courseToDelete = await _languageCoursesServices.Delete(id);
-            if (courseToDelete == null)
-            {
-                return NotFound();
-            }
-            return RedirectToAction(nameof(Index));
+            IWebDriver driver = new FirefoxDriver(); //brauserit juhtiv ja seal tegutsev draiver
+            driver.Url = "https://localhost:7191/"; //navigeeritav aadress
+            Thread.Sleep(3000);
+            IWebElement navigateToLanguageCourse = driver.FindElement(By.LinkText("Keelekursused"));//otsime tesitava osa lingi
+            navigateToLanguageCourse.Click(); //simuleeritud tegevus elemendiga, antud juhul klikk
+            return driver;
         }
     }
 }

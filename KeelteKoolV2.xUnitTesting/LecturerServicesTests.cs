@@ -80,6 +80,64 @@ public class LecturerServicesTests : TestBase
         Assert.Null(result);
     }
 
+    /// <summary>
+    /// Kontrollib, et olematu ID korral Lecturer andmeid ei tagastata.
+    /// </summary>
+    [Fact]
+    public async Task Should_ReturnNull_WhenLecturerIdDoesNotExist()
+    {
+        var result = await Svc<ILecturerServices>().DetailAsync(Guid.NewGuid());
+        Assert.Null(result);
+    }
+
+    /// <summary>
+    /// Kontrollib, et olematu Lecturer ID uuendamisel tagastatakse null.
+    /// </summary>
+    [Fact]
+    public async Task Should_ReturnNull_WhenUpdatingNonExistingLecturer()
+    {
+        var dto = CreateDefaultDTO();
+        dto.Id = Guid.NewGuid();
+        var result = await Svc<ILecturerServices>().Update(dto);
+        Assert.Null(result);
+    }
+
+    /// <summary>
+    /// Kontrollib, et olematu Lecturer ID kustutamisel tagastatakse null.
+    /// </summary>
+    [Fact]
+    public async Task Should_ReturnNull_WhenDeletingNonExistingLecturer()
+    {
+        var result = await Svc<ILecturerServices>().Delete(Guid.NewGuid());
+        Assert.Null(result);
+    }
+
+    /// <summary>
+    /// Kontrollib, et tühja eesnime korral määratakse Lecturer eesnimeks vaikimisi John.
+    /// </summary>
+    [Fact]
+    public async Task Should_SetDefaultFirstName_WhenFirstNameIsEmpty()
+    {
+        var dto = CreateDefaultDTO();
+        dto.FirstName = "";
+        var result = await Svc<ILecturerServices>().Create(dto);
+        Assert.NotNull(result);
+        Assert.Equal("John", result.FirstName);
+    }
+
+    /// <summary>
+    /// Kontrollib, et tühja perekonnanime korral määratakse Lecturer perekonnanimeks vaikimisi Doe.
+    /// </summary>
+    [Fact]
+    public async Task Should_SetDefaultLastName_WhenLastNameIsEmpty()
+    {
+        var dto = CreateDefaultDTO();
+        dto.LastName = "";
+        var result = await Svc<ILecturerServices>().Create(dto);
+        Assert.NotNull(result);
+        Assert.Equal("Doe", result.LastName);
+    }
+
     private LecturerDTO CreateDefaultDTO()
     {
         return new LecturerDTO

@@ -36,4 +36,27 @@ public class LecturersController : Controller
             .ToListAsync();
         return View(lecturers);
     }
+
+    [HttpGet]
+    public IActionResult Create()
+    {
+        return View("CreateUpdate", new LecturerCreateUpdateViewModel());
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Create(LecturerCreateUpdateViewModel vm)
+    {
+        if (!ModelState.IsValid)
+            return View("CreateUpdate", vm);
+
+        var dto = new LecturerDTO
+        {
+            FirstName = vm.FirstName,
+            LastName = vm.LastName,
+            Qualifications = vm.Qualifications,
+            UserID = vm.UserID
+        };
+        await _lecturerServices.Create(dto);
+        return RedirectToAction(nameof(Index));
+    }
 }

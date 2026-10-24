@@ -115,4 +115,31 @@ public class LecturersController : Controller
             return NotFound();
         return RedirectToAction(nameof(Index));
     }
+
+    [HttpGet]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var lecturer = await _lecturerServices.DetailAsync(id);
+        if (lecturer == null)
+            return NotFound();
+
+        var vm = new LecturerViewModel
+        {
+            Id = lecturer.Id,
+            FirstName = lecturer.FirstName,
+            LastName = lecturer.LastName,
+            Qualifications = lecturer.Qualifications,
+            UserID = lecturer.UserID
+        };
+        return View(vm);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> DeleteConfirmed(Guid id)
+    {
+        var result = await _lecturerServices.Delete(id);
+        if (result == null)
+            return NotFound();
+        return RedirectToAction(nameof(Index));
+    }
 }

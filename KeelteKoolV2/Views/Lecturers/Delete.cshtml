@@ -11,6 +11,6 @@
 </dl>
 <form asp-action="DeleteConfirmed" method="post">
     <input type="hidden" name="id" value="@Model.Id" />
-    <button type="submit" class="btn btn-danger">Delete</button>
-    <a asp-action="Index" class="btn btn-secondary">Back</a>
+    <button id="DeleteDelete_BTN" type="submit" class="btn btn-danger">Delete</button>
+    <a id="DeleteCancel_BTN" asp-action="Index" class="btn btn-secondary">Back</a>
 </form>
